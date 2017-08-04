@@ -9,19 +9,19 @@
 #include <libpng16/png.h>
 
 #define MAX_N 16L                                                               /* max number of iterations for quadratic map */
-#define RES   512L                                                              /* square image resolution */
+#define RES   1024L                                                              /* square image resolution */
 
-double complex quad_map(double complex c, long n)
+complex double quad_map(complex double c, long n)
 {
-    switch (n) {
-        case 0:
-            return c;
-        default:
-            return (quad_map(c, n-1)*quad_map(c, n-1) + c);
+    complex double z = c;
+    for (long i = 0; i < n; ++i) {
+        z = z*z + c;
     }
+
+    return z;
 }
 
-bool Mandelbrot(double complex c)
+bool Mandelbrot(complex double c)
 {
     for (long n = 0; n < MAX_N; ++n) {
         if (cabs(quad_map(c, n)) > 2) {
@@ -32,10 +32,10 @@ bool Mandelbrot(double complex c)
     return true;
 }
 
-double complex px_to_C(double x, double y) {
-    double complex c_re = ( (x/RES)*4.0 - 2.0);
-    double complex c_im = (-(y/RES)*4.0 + 2.0);
-    double complex c = c_re + I*c_im;
+complex double px_to_C(double x, double y) {
+    complex double c_re = ( (x/RES)*4.0 - 2.0);
+    complex double c_im = (-(y/RES)*4.0 + 2.0);
+    complex double c = c_re + I*c_im;
 
     return c;
 }
@@ -205,7 +205,7 @@ int main()
     double progress = 0;
     for (y = 0; y < SYM; ++y) {
         for (x = 0; x < RES; ++x) {
-            double complex c = px_to_C((double) x,(double) y);
+            complex double c = px_to_C((double) x,(double) y);
             grid[y][x] = Mandelbrot(c);
             printf("%2.2lf\n", 100*(++progress/(RES*RES)));
         }
