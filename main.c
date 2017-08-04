@@ -3,8 +3,8 @@
 #include <stdbool.h>
 #include <complex.h>
 
-#undef I
-#define I csqrt(-1.0)                                                           /* fixes some weird behavior with default I macro on gcc */
+//#undef I
+//#define I csqrt(-1.0)                                                           /* fixes some weird behavior with default I macro on gcc */
 
 #include <libpng16/png.h>
 
