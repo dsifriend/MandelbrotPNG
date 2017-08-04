@@ -8,23 +8,38 @@
 
 #include <libpng16/png.h>
 
-#define MAX_N 16L                                                               /* max number of iterations for quadratic map */
-#define RES   1024L                                                              /* square image resolution */
+#define MAX_N 1024L                                                             /* max number of iterations for quadratic map */
+#define RES   1432L                                                             /* square image resolution */
 
-complex double quad_map(complex double c, long n)
-{
-    complex double z = c;
-    for (long i = 0; i < n; ++i) {
-        z = z*z + c;
-    }
+/* original Mandelbrot function and quadratic mapping */
+//complex double quad_map(complex double c, long n)
+//{
+//    complex double z = c;
+//    for (long i = 0; i < n; ++i) {
+//        z = z*z + c;
+//    }
+//
+//    return z;
+//}
+//
+//bool Mandelbrot(complex double c)
+//{
+//    for (long n = 0; n < MAX_N; ++n) {
+//        if (cabs(quad_map(c, n)) > 2) {
+//            return false;
+//        }
+//    }
+//
+//    return true;
+//}
 
-    return z;
-}
-
+/* integrated Mandelbrot function and quadratic mapping */
 bool Mandelbrot(complex double c)
 {
-    for (long n = 0; n < MAX_N; ++n) {
-        if (cabs(quad_map(c, n)) > 2) {
+    complex double z = c;
+    for (long i = 0; i < MAX_N; ++i) {
+        z = z*z + c;
+        if (cabs(z) > 2) {
             return false;
         }
     }
