@@ -9,7 +9,7 @@
 #include <libpng16/png.h>
 
 #define MAX_N 1024L                                                             /* max number of iterations for quadratic map */
-#define RES   1432L                                                             /* square image resolution */
+#define RES   65536L                                                            /* square image resolution */
 
 /* original Mandelbrot function and quadratic mapping */
 //complex double quad_map(complex double c, long n)
@@ -55,7 +55,7 @@ complex double px_to_C(double x, double y) {
     return c;
 }
 
-double area(bool grid[RES][RES])
+double area(const bool *grid)
 {
     const double scale = 1.0/(RES*RES);
     const double total = 16.0;
@@ -63,7 +63,7 @@ double area(bool grid[RES][RES])
 
     for (long y = 0; y < RES; ++y) {
         for (long x = 0; x < RES; ++x) {
-            if (grid[y][x]) {
+            if (grid[y*RES + x]) {
                 ++portion;
             }
         }
@@ -183,7 +183,7 @@ int save_png_to_file(bitmap_t *bitmap, const char *path)
     return status;
 }
 
-void write_png(bool grid[RES][RES])                                             /* x and y resolution arguments refer to grid's */
+void write_png(const bool *grid)                                                /* x and y resolution arguments refer to grid's */
 {
     bitmap_t graph;
     long x, y;
@@ -196,7 +196,7 @@ void write_png(bool grid[RES][RES])                                             
     for (y = 0; y < RES; ++y) {
         for (x = 0; x < RES; ++x) {
             pixel_t *px = pixel_at(&graph, x, y);
-            if (grid[y][x]) {
+            if (grid[y*RES + x]) {
                 px->red   = 0xFF;
                 px->blue  = 0xFF;
                 px->green = 0xFF;
@@ -213,7 +213,7 @@ void write_png(bool grid[RES][RES])                                             
 
 int main()
 {
-    bool grid[RES][RES];
+    bool *grid = calloc(RES*RES, sizeof(bool));
 
     const long SYM = (RES % 2) ? (RES+1)/2 : (RES/2)+1;                         /* take advantage of symmetry across real axis */
     long x, y;
@@ -221,14 +221,14 @@ int main()
     for (y = 0; y < SYM; ++y) {
         for (x = 0; x < RES; ++x) {
             complex double c = px_to_C((double) x,(double) y);
-            grid[y][x] = Mandelbrot(c);
-            printf("%2.2lf\n", 100*(++progress/(RES*RES)));
+            grid[y*RES + x] = Mandelbrot(c);
+            printf("%2.3lf\n", 100*(++progress/(RES*RES)));
         }
     }
     for (y = SYM; y < RES; ++y) {
         for (x = 0; x < RES; ++x) {
-            grid[y][x] = grid[RES-y][x];
-            printf("%2.2lf\n", 100*(++progress/(RES*RES)));
+            grid[y*RES + x] = grid[(RES-y)*RES + x];
+            printf("%2.3lf\n", 100*(++progress/(RES*RES)));
         }
     }
 
