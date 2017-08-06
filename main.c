@@ -8,7 +8,7 @@
 
 #include <libpng16/png.h>
 
-#define MAX_N 1024L                                                             /* max number of iterations for quadratic map */
+#define MAX_N 8L                                                             /* max number of iterations for quadratic map */
 #define RES   65536L                                                            /* square image resolution */
 
 /* original Mandelbrot function and quadratic mapping */
@@ -217,14 +217,16 @@ int main()
 
     FILE *grid_file = fopen("grid.txt", "w");
     const long SYM = (RES % 2) ? (RES+1)/2 : (RES/2)+1;                         /* take advantage of symmetry across real axis */
-    long x, y;
+    const double px_quant = (double) RES*RES;
     double progress = 0;
+    long x, y;
     for (y = 0; y < SYM; ++y) {
         for (x = 0; x < RES; ++x) {
             complex double c = px_to_C((double) x,(double) y);
             grid[y*RES + x] = Mandelbrot(c);
             fprintf(grid_file, "%c", (grid[y*RES + x]) ? 'X' : ' ');
-            printf("%16.0lf values determined so far.\n", progress);
+            printf("%16.0lf of %16.0lf values determined so far.\n",
+                   ++progress, px_quant);
         }
         fprintf(grid_file, "\n");
     }
@@ -232,7 +234,8 @@ int main()
         for (x = 0; x < RES; ++x) {
             grid[y*RES + x] = grid[(RES-y)*RES + x];
             fprintf(grid_file, "%c", (grid[y*RES + x]) ? 'X' : ' ');
-            printf("%16.0lf values determined so far.\n", progress);
+            printf("%16.0lf of %16.0lf values determined so far.\n",
+                   ++progress, px_quant);
         }
         fprintf(grid_file, "\n");
     }
