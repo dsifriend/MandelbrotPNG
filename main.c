@@ -215,6 +215,7 @@ int main()
 {
     bool *grid = calloc(RES*RES, sizeof(bool));
 
+    FILE *grid_file = fopen("grid.txt", "w");
     const long SYM = (RES % 2) ? (RES+1)/2 : (RES/2)+1;                         /* take advantage of symmetry across real axis */
     long x, y;
     double progress = 0;
@@ -222,18 +223,25 @@ int main()
         for (x = 0; x < RES; ++x) {
             complex double c = px_to_C((double) x,(double) y);
             grid[y*RES + x] = Mandelbrot(c);
-            printf("%2.3lf\n", 100*(++progress/(RES*RES)));
+            fprintf(grid_file, "%c", (grid[y*RES + x]) ? 'X' : ' ');
+            printf("%16.0lf values determined so far.\n", progress);
         }
+        fprintf(grid_file, "\n");
     }
     for (y = SYM; y < RES; ++y) {
         for (x = 0; x < RES; ++x) {
             grid[y*RES + x] = grid[(RES-y)*RES + x];
-            printf("%2.3lf\n", 100*(++progress/(RES*RES)));
+            fprintf(grid_file, "%c", (grid[y*RES + x]) ? 'X' : ' ');
+            printf("%16.0lf values determined so far.\n", progress);
         }
+        fprintf(grid_file, "\n");
     }
+    fclose(grid_file);
 
-    fprintf(stdout, "The area of the Mandelbrot set is approximately %lf.\n",
+    FILE *area_file = fopen("area.txt", "w");
+    fprintf(area_file, "The area of the Mandelbrot set is approximately %1.16lf.\n",
             area(grid));
+    fclose(area_file);
 
     write_png(grid);
 
