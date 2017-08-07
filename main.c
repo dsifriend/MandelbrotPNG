@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
+#include <math.h>
 #include <complex.h>
 
 //#undef I
@@ -8,8 +8,8 @@
 
 #include <libpng16/png.h>
 
-#define MAX_N 8L                                                             /* max number of iterations for quadratic map */
-#define RES   65536L                                                            /* square image resolution */
+#define MAX_N 512L                                                              /* max number of iterations for quadratic map */
+#define RES   16384L                                                            /* square image resolution */
 
 /* original Mandelbrot function and quadratic mapping */
 //complex double quad_map(complex double c, long n)
@@ -34,28 +34,28 @@
 //}
 
 /* integrated Mandelbrot function and quadratic mapping */
-bool Mandelbrot(complex double c)
+u_int8_t Mandelbrot(complex double c)
 {
     complex double z = c;
-    for (long i = 0; i < MAX_N; ++i) {
-        z = z*z + c;
+    for (long i = 1; i <= MAX_N; ++i) {
         if (cabs(z) > 2) {
-            return false;
+            return (u_int8_t) i;
         }
+        z = z*z + c;
     }
 
-    return true;
+    return 0;
 }
 
 complex double px_to_C(double x, double y) {
-    complex double c_re = ( (x/RES)*4.0 - 2.0);
-    complex double c_im = (-(y/RES)*4.0 + 2.0);
-    complex double c = c_re + I*c_im;
+//    complex double c_re = ( (x/RES)*4.0 - 2.0);
+//    complex double c_im = (-(y/RES)*4.0 + 2.0);
+//    complex double c = c_re + I*c_im;
 
-    return c;
+    return ( (x/RES)*4.0 - 2.0) + I*(-(y/RES)*4.0 + 2.0);
 }
 
-double area(const bool *grid)
+double area(const u_int8_t *grid)
 {
     const double scale = 1.0/(RES*RES);
     const double total = 16.0;
@@ -183,7 +183,14 @@ int save_png_to_file(bitmap_t *bitmap, const char *path)
     return status;
 }
 
-void write_png(const bool *grid)                                                /* x and y resolution arguments refer to grid's */
+void color_pixel(pixel_t *px, u_int32_t color, u_int8_t shade)                  /* shade the hex RGB color value and apply it to px */
+{
+    px->red   = (u_int8_t) ceil(((color/0x10000        )*shade)/256.0);
+    px->green = (u_int8_t) ceil(((color/0x100   % 0x100)*shade)/256.0);
+    px->blue  = (u_int8_t) ceil(((color         % 0x100)*shade)/256.0);
+}
+
+void write_png(const u_int8_t *grid)                                               /* x and y resolution arguments refer to grid's */
 {
     bitmap_t graph;
     long x, y;
@@ -196,10 +203,14 @@ void write_png(const bool *grid)                                                
     for (y = 0; y < RES; ++y) {
         for (x = 0; x < RES; ++x) {
             pixel_t *px = pixel_at(&graph, x, y);
-            if (grid[y*RES + x]) {
-                px->red   = 0xFF;
-                px->blue  = 0xFF;
-                px->green = 0xFF;
+            u_int8_t val = grid[y*RES + x];
+            if (val) {
+//                px->red   = 0xFF;
+//                px->blue  = 0xFF;
+//                px->green = 0xFF;
+
+                color_pixel(px, 0xFFFFFF, val);
+
                 px->alpha = 0xFF;
             } else {
                 px->alpha = 0xFF;
@@ -213,7 +224,7 @@ void write_png(const bool *grid)                                                
 
 int main()
 {
-    bool *grid = calloc(RES*RES, sizeof(bool));
+    u_int8_t *grid = calloc(RES*RES, sizeof(u_int8_t));
 
     FILE *grid_file = fopen("grid.txt", "w");
     const long SYM = (RES % 2) ? (RES+1)/2 : (RES/2)+1;                         /* take advantage of symmetry across real axis */
